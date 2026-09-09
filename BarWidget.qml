@@ -62,10 +62,14 @@ BarWidget {
     anchors.fill: parent
     bar: root.bar
     text: "󰊴"
-    textColor: root.isGaming ? Style.colors.accent : root.barForeground
+    active: root.isGaming
+    useActiveColor: true
+    activeColor: Color.urgent
     tooltipText: root.isGaming ? "Gaming Mode: Active (Click to disable)" : "Gaming Mode: Inactive (Click to enable)"
     slotSize: Style.bar.statusSlot
 
-    onClicked: root.toggle()
+    onPressed: function(buttonCode) {
+      root.toggle()
+    }
   }
 }
