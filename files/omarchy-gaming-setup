@@ -157,8 +157,11 @@ detect_cachyos_tier() {
 
 tier_mirrorlist_file() {
   case "$1" in
-    znver4|znver3|x86-64-v4|x86-64-v3)
+    znver4|x86-64-v4)
       echo "/etc/pacman.d/cachyos-v4-mirrorlist"
+      ;;
+    znver3|x86-64-v3)
+      echo "/etc/pacman.d/cachyos-v3-mirrorlist"
       ;;
     *)
       echo "/etc/pacman.d/cachyos-mirrorlist"
@@ -189,11 +192,17 @@ if [[ "$mode" == remove ]]; then
 fi
 
 mkdir -p "$STATE_DIR"
-cat > "$STATE_FILE" <<EOF
-gamemode_added=0
-kernel_added=0
-repo_added=0
-EOF
+if [[ -f "$STATE_FILE" ]]; then
+  # Preserve ownership flags across repair/setup runs.
+  source "$STATE_FILE"
+else
+  gamemode_added=0
+  kernel_added=0
+  repo_added=0
+fi
+: "${gamemode_added:=0}"
+: "${kernel_added:=0}"
+: "${repo_added:=0}"
 if pacman -Q gamemode &>/dev/null || pacman -Q lib32-gamemode &>/dev/null; then
   gamemode_was_installed=1
 else
@@ -333,16 +342,28 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
 
   keyring_pkg=$(latest_cachyos_pkg cachyos-keyring)
   mirrorlist_pkg=$(latest_cachyos_pkg cachyos-mirrorlist)
-  v4_mirrorlist_pkg=$(latest_cachyos_pkg cachyos-v4-mirrorlist)
-  if [[ -z "$keyring_pkg" || -z "$mirrorlist_pkg" || -z "$v4_mirrorlist_pkg" ]]; then
+  case "$tier" in
+    znver4|x86-64-v4) optimized_mirrorlist_prefix=cachyos-v4-mirrorlist ;;
+    znver3|x86-64-v3) optimized_mirrorlist_prefix=cachyos-v3-mirrorlist ;;
+    *) optimized_mirrorlist_prefix="" ;;
+  esac
+  optimized_mirrorlist_pkg=""
+  if [[ -n "$optimized_mirrorlist_prefix" ]]; then
+    optimized_mirrorlist_pkg=$(latest_cachyos_pkg "$optimized_mirrorlist_prefix")
+  fi
+  if [[ -z "$keyring_pkg" || -z "$mirrorlist_pkg" || ( -n "$optimized_mirrorlist_prefix" && -z "$optimized_mirrorlist_pkg" ) ]]; then
     error "Could not find current CachyOS keyring/mirrorlist packages at $cachyos_url"
     exit 1
   fi
 
-  sudo pacman -U --noconfirm \
-    "$cachyos_url/$keyring_pkg" \
-    "$cachyos_url/$mirrorlist_pkg" \
-    "$cachyos_url/$v4_mirrorlist_pkg"
+  cachyos_packages=(
+    "$cachyos_url/$keyring_pkg"
+    "$cachyos_url/$mirrorlist_pkg"
+  )
+  if [[ -n "$optimized_mirrorlist_pkg" ]]; then
+    cachyos_packages+=("$cachyos_url/$optimized_mirrorlist_pkg")
+  fi
+  sudo pacman -U --noconfirm "${cachyos_packages[@]}"
 
   mirrorlist=$(tier_mirrorlist_file "$tier")
   repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
