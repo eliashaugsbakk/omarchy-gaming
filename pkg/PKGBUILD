@@ -6,7 +6,7 @@ pkgdesc="One-click low-latency gaming mode integration and status bar widget for
 arch=('x86_64')
 url="https://github.com/eliashaugsbakk/omarchy-gaming"
 license=('MIT')
-depends=('bash' 'curl' 'hyprland' 'upower')
+depends=('bash' 'curl' 'hyprland' 'omarchy>=4.0.3' 'upower')
 optdepends=(
   'gamemode: User-space daemon for resource prioritization'
   'lib32-gamemode: 32-bit GameMode library support'

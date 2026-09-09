@@ -2,11 +2,22 @@
 > This project was created entirely through AI-assisted prompting (vibe
 > coding). Review the scripts and configuration before running them.
 
+> [!IMPORTANT]
+> This is an unofficial, user-maintained project. It is not part of Omarchy.
+> The plugin and menu integration are tested against **Omarchy 4.0.3** and
+> require Omarchy 4.x with the current plugin, bar, and menu commands.
+
 # omarchy-gaming
 
 An Omarchy gaming-performance mode with a Quickshell bar plugin and AUR
 packaging. It combines general Linux gaming optimizations with optional
 CachyOS kernel/repository setup and includes a CS2-specific latency rule.
+
+The project currently targets Omarchy 4.0.3 APIs, including
+`omarchy plugin enable`, `omarchy bar`, the Quickshell plugin manifest format,
+and `~/.config/omarchy/extensions/omarchy-menu.jsonc`. Earlier Omarchy
+versions are not supported; newer versions should be checked for API changes
+before upgrading.
 
 ## Install from this repository
 
