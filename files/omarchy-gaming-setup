@@ -99,6 +99,12 @@ remove_installation() {
   header "Removing Omarchy Gaming"
   if [[ ! -f "$STATE_FILE" ]]; then
     warn "No setup ownership record found; removing user integration only."
+  else
+    # Load ownership flags before removing files created by setup.
+    gaming_flag_added=$(state_value gaming_flag_added)
+    gaming_lua_added=$(state_value gaming_lua_added)
+    plugin_link_added=$(state_value plugin_link_added)
+    binding_added=$(state_value binding_added)
   fi
 
   [[ "${gaming_flag_added:-0}" == 1 ]] && rm -f "$HOME/.local/state/omarchy/toggles/gaming"
@@ -143,6 +149,9 @@ PY
   fi
   rm -rf "$STATE_DIR"
   hyprctl reload &>/dev/null || true
+  if command -v omarchy-shell >/dev/null 2>&1; then
+    omarchy-shell shell rescanPlugins &>/dev/null || true
+  fi
   success "Omarchy Gaming removed."
   exit 0
 }
