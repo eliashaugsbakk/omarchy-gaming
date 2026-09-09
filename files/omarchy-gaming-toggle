@@ -1,0 +1,62 @@
+#!/bin/bash
+
+set -euo pipefail
+
+gaming_flag="$HOME/.local/state/omarchy/toggles/gaming"
+force=0
+
+if [[ ${1:-} == "--force" ]]; then
+  force=1
+fi
+
+is_on_battery() {
+  [[ $(busctl get-property org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.UPower OnBattery 2>/dev/null) == "b true" ]]
+}
+
+is_cachyos_kernel() {
+  [[ $(uname -r) =~ cachyos ]]
+}
+
+toggle_to_gaming() {
+  omarchy-toggle gaming on
+  hyprctl reload || true
+  omarchy-shell notifications setDnd on || true
+  omarchy toggle idle stay-awake || true
+  omarchy-toggle screensaver-off off || true
+  omarchy-powerprofiles-set autodetect performance || true
+  omarchy-notification-send -u low -g "󰊴" "Gaming mode enabled" "Optimized for low-latency play" || true
+}
+
+toggle_to_non_gaming() {
+  omarchy-toggle gaming off
+  hyprctl reload || true
+  omarchy-shell notifications setDnd off || true
+  omarchy toggle idle allow-idle || true
+  omarchy-toggle screensaver-off on || true
+  omarchy-powerprofiles-set autodetect power-saver || true
+  omarchy-notification-send -u low -g "󰊴" "Gaming mode disabled" "Returned to normal desktop behavior" || true
+}
+
+if [[ -f $gaming_flag ]]; then
+  toggle_to_non_gaming
+else
+  if (( !force )); then
+    reasons=()
+
+    if is_on_battery; then
+      reasons+=("Not plugged into AC")
+    fi
+
+    if ! is_cachyos_kernel; then
+      reasons+=("Running non-CachyOS kernel ($(uname -r))")
+    fi
+
+    if ((${#reasons[@]} > 0)); then
+      body=$(IFS=" & "; echo "${reasons[*]}")
+      omarchy-notification-send -u critical -g "󰊴" "Gaming mode warning" "${body}. Click to enable anyway." --exec "$0" --force || true
+      exit 0
+    fi
+  fi
+
+  toggle_to_gaming
+fi
