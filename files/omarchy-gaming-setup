@@ -78,10 +78,10 @@ remove_installation() {
     warn "No setup ownership record found; removing user integration only."
   fi
 
-  rm -f "$HOME/.local/bin/omarchy-gaming-toggle"
-  rm -f "$HOME/.local/state/omarchy/toggles/gaming" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
-  rm -f "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
-  if [[ -f "$HOME/.config/hypr/bindings.lua" ]]; then
+  [[ "${gaming_flag_added:-0}" == 1 ]] && rm -f "$HOME/.local/state/omarchy/toggles/gaming"
+  [[ "${gaming_lua_added:-0}" == 1 ]] && rm -f "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
+  [[ "${plugin_link_added:-0}" == 1 ]] && rm -f "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
+  if [[ "${binding_added:-0}" == 1 && -f "$HOME/.config/hypr/bindings.lua" ]]; then
     sed -i '/-- \[omarchy-gaming\]/,/-- \[\/omarchy-gaming\]/d' "$HOME/.config/hypr/bindings.lua"
   fi
   omarchy plugin disable com.github.eliashaugsbakk.omarchy-gaming 2>/dev/null || true
@@ -199,10 +199,18 @@ else
   gamemode_added=0
   kernel_added=0
   repo_added=0
+  gaming_flag_added=0
+  gaming_lua_added=0
+  plugin_link_added=0
+  binding_added=0
 fi
 : "${gamemode_added:=0}"
 : "${kernel_added:=0}"
 : "${repo_added:=0}"
+: "${gaming_flag_added:=0}"
+: "${gaming_lua_added:=0}"
+: "${plugin_link_added:=0}"
+: "${binding_added:=0}"
 if pacman -Q gamemode &>/dev/null || pacman -Q lib32-gamemode &>/dev/null; then
   gamemode_was_installed=1
 else
@@ -213,6 +221,9 @@ if pacman -Q linux-cachyos &>/dev/null; then
 else
   kernel_was_installed=0
 fi
+if [[ ! -e "$HOME/.local/state/omarchy/toggles/gaming" && "$gaming_flag_added" == 0 ]]; then gaming_flag_added=1; fi
+if [[ ! -e "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua" && "$gaming_lua_added" == 0 ]]; then gaming_lua_added=1; fi
+if [[ ! -e "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming" && "$plugin_link_added" == 0 ]]; then plugin_link_added=1; fi
 
 header "========================================"
 header "    Omarchy Gaming Mode Setup Wizard    "
@@ -231,6 +242,12 @@ if [[ -d /usr/share/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming ]];
 elif [[ -d "$HOME/omarchy-gaming" ]]; then
   plugin_source="$HOME/omarchy-gaming"
 fi
+
+sed -i \
+  -e "s/^gaming_flag_added=.*/gaming_flag_added=$gaming_flag_added/" \
+  -e "s/^gaming_lua_added=.*/gaming_lua_added=$gaming_lua_added/" \
+  -e "s/^plugin_link_added=.*/plugin_link_added=$plugin_link_added/" \
+  "$STATE_FILE"
 
 if [[ -n "$plugin_source" ]]; then
   ln -sfn "$plugin_source" "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
@@ -284,6 +301,7 @@ o.bind(
 )
 -- [/omarchy-gaming]
 BINDING
+      sed -i 's/^binding_added=.*/binding_added=1/' "$STATE_FILE"
       hyprctl reload &>/dev/null || true
       success "Added keybinding to ~/.config/hypr/bindings.lua"
     fi
