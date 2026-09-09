@@ -468,7 +468,11 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
   sudo pacman -U --noconfirm "${cachyos_packages[@]}"
 
   mirrorlist=$(tier_mirrorlist_file "$tier")
-  repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
+  if [[ "$tier" == generic ]]; then
+    repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos]\nInclude = $mirrorlist\n\n[cachyos-core]\nInclude = $mirrorlist\n\n[cachyos-extra]\nInclude = $mirrorlist\n"
+  else
+    repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
+  fi
 
   pacman_arch=""
   case "$tier" in
