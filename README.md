@@ -1,3 +1,9 @@
+> [!NOTE]
+> This project was built entirely through AI-assisted prompting (vibe coding).
+> The code, configuration, and documentation were generated and iterated on
+> through conversational AI pair programming. Review before running on your
+> system.
+
 # omarchy-gaming
 
 One-keybind gaming mode for [Omarchy](https://omarchy.org/) Linux. Press
