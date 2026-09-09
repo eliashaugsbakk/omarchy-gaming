@@ -33,6 +33,16 @@ warn()    { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
 error()   { printf "${RED}✗${NC} %s\n" "$*" >&2; }
 header()  { printf "\n${BOLD}%s${NC}\n" "$*"; }
 
+state_value() {
+  local key="$1"
+  local value
+  value=$(awk -F= -v key="$key" '$1 == key { print $2; exit }' "$STATE_FILE" 2>/dev/null || true)
+  case "$value" in
+    0|1) printf '%s\n' "$value" ;;
+    *) printf '0\n' ;;
+  esac
+}
+
 remove_menu_entries() {
   [[ -f "$MENU_EXTENSION" ]] || return 0
   python3 - "$MENU_EXTENSION" <<'PY'
@@ -90,8 +100,10 @@ remove_installation() {
   if [[ -f "$STATE_FILE" ]]; then
     # Packages and repositories are removed only when this setup added them.
     # Kernel removal is deliberately confirmed and never attempted while active.
-    source "$STATE_FILE"
-    if [[ "${repo_added:-0}" == 1 ]] && prompt_yes_no "Remove the CachyOS repository block added by Omarchy Gaming?" n; then
+    repo_added=$(state_value repo_added)
+    gamemode_added=$(state_value gamemode_added)
+    kernel_added=$(state_value kernel_added)
+    if [[ "$repo_added" == 1 ]] && prompt_yes_no "Remove the CachyOS repository block added by Omarchy Gaming?" n; then
       sudo python3 - <<'PY'
 from pathlib import Path
 path = Path("/etc/pacman.conf")
@@ -103,10 +115,10 @@ if start >= 0 and end >= 0:
     path.write_text(text)
 PY
     fi
-    if [[ "${gamemode_added:-0}" == 1 ]] && prompt_yes_no "Remove GameMode packages installed by this setup?" n; then
+    if [[ "$gamemode_added" == 1 ]] && prompt_yes_no "Remove GameMode packages installed by this setup?" n; then
       sudo pacman -Rns --noconfirm gamemode lib32-gamemode 2>/dev/null || true
     fi
-    if [[ "${kernel_added:-0}" == 1 && "$(uname -r)" != *cachyos* ]] && prompt_yes_no "Remove the CachyOS kernel installed by this setup?" n; then
+    if [[ "$kernel_added" == 1 && "$(uname -r)" != *cachyos* ]] && prompt_yes_no "Remove the CachyOS kernel installed by this setup?" n; then
       sudo pacman -Rns --noconfirm linux-cachyos linux-cachyos-headers 2>/dev/null || true
     fi
   fi
@@ -194,7 +206,13 @@ fi
 mkdir -p "$STATE_DIR"
 if [[ -f "$STATE_FILE" ]]; then
   # Preserve ownership flags across repair/setup runs.
-  source "$STATE_FILE"
+  gamemode_added=$(state_value gamemode_added)
+  kernel_added=$(state_value kernel_added)
+  repo_added=$(state_value repo_added)
+  gaming_flag_added=$(state_value gaming_flag_added)
+  gaming_lua_added=$(state_value gaming_lua_added)
+  plugin_link_added=$(state_value plugin_link_added)
+  binding_added=$(state_value binding_added)
 else
   gamemode_added=0
   kernel_added=0
