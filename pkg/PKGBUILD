@@ -34,7 +34,7 @@ package() {
   install -Dm644 "files/gaming.conf" "${pkgdir}/etc/environment.d/99-gaming.conf"
 
   # 3. Install Omarchy Quattro shell plugin files
-  local plugindir="${pkgdir}/usr/share/omarchy/plugins/io.github.elias.gaming"
+  local plugindir="${pkgdir}/usr/share/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
   install -Dm644 "manifest.json" "${plugindir}/manifest.json"
   install -Dm644 "BarWidget.qml" "${plugindir}/BarWidget.qml"
 

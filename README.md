@@ -7,11 +7,14 @@
 > The plugin and menu integration are tested against **Omarchy 4.0.3** and
 > require Omarchy 4.x with the current plugin, bar, and menu commands.
 
-# omarchy-gaming
+# Omarchy Gaming Mode (unofficial)
 
-An Omarchy gaming-performance mode with a Quickshell bar plugin and AUR
-packaging. It combines general Linux gaming optimizations with optional
-CachyOS kernel/repository setup and includes a CS2-specific latency rule.
+An unofficial gaming-performance mode for Omarchy. Install the package, choose
+`Install → Gaming → Omarchy Gaming Mode` from the Omarchy menu, and use the
+bar icon or `Super + Ctrl + G` to turn the mode on and off. The setup can also
+install GameMode and optionally configure the CachyOS kernel and repositories.
+
+This project is not made, maintained, or endorsed by the Omarchy project.
 
 The project currently targets Omarchy 4.0.3 APIs, including
 `omarchy plugin enable`, `omarchy bar`, the Quickshell plugin manifest format,
@@ -38,6 +41,7 @@ Install → Gaming → Omarchy Gaming Mode
 
 The setup wizard installs the user integration, adds the plugin to the bar,
 adds `Super + Ctrl + G`, installs GameMode, and optionally configures CachyOS.
+Most users do not need to edit any files manually.
 
 Choose a bar section with:
 
@@ -59,7 +63,9 @@ Removal deletes the integration created by setup and only offers to remove
 GameMode, CachyOS repositories, or the CachyOS kernel when this setup recorded
 that it installed them. The currently running kernel is never removed.
 
-## What gaming mode does
+## For technical users
+
+### What gaming mode does
 
 When enabled, the toggle:
 
@@ -74,7 +80,7 @@ The bar plugin and keyboard shortcut both call the same
 `omarchy-gaming-toggle` program, so they share one state and one set of safety
 checks.
 
-## CS2-specific behavior
+### CS2-specific behavior
 
 The default `files/gaming.lua` contains:
 
@@ -90,7 +96,7 @@ allowing tearing for lower input-to-display latency. The same file enables
 Hyprland direct scanout. The rule is only for CS2; add or change window rules
 in `files/gaming.lua` for other games.
 
-## GameMode and Steam
+### GameMode and Steam
 
 GameMode is activated per game through Steam launch options. For CS2:
 
@@ -107,7 +113,7 @@ gamemoderun %command% -nojoy
 `-nojoy` and `autoexec.cfg` are CS2-specific choices; omit them for other
 games.
 
-## CachyOS and hardware notes
+### CachyOS and hardware notes
 
 CachyOS setup is optional. The wizard detects the CPU tier and selects the
 appropriate repository architecture when possible. Virtual machines are
@@ -118,7 +124,7 @@ The CachyOS kernel and repositories are not required for the plugin or the
 general gaming configuration. They are part of the original low-latency
 profile and can be skipped in a VM.
 
-## Customization locations
+### Customization locations
 
 | Component | Location |
 |---|---|
@@ -135,16 +141,8 @@ The setup wizard adds only its own entries to
 `~/.config/omarchy/extensions/omarchy-menu.jsonc`; it does not modify
 Omarchy's packaged menu under `/usr/share/omarchy/`.
 
-## AUR packaging
-
-The monorepo keeps the PKGBUILD in `pkg/` for development. An actual AUR
-repository normally places `PKGBUILD` and `omarchy-gaming.install` at its root.
-Before publishing, copy or move those files to the AUR repository root and
-adjust the `source` URL as needed.
-
-The AUR repository is separate from this source repository and normally
-contains the PKGBUILD, install file, and metadata—not the whole project.
-
 ## License
 
-MIT
+MIT. The code in this repository is released under the MIT License. It uses
+Omarchy commands and APIs but does not include or redistribute Omarchy's own
+source code. See the `LICENSE` file for the full license text.

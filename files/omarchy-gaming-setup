@@ -80,11 +80,11 @@ remove_installation() {
 
   rm -f "$HOME/.local/bin/omarchy-gaming-toggle"
   rm -f "$HOME/.local/state/omarchy/toggles/gaming" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
-  rm -f "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+  rm -f "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
   if [[ -f "$HOME/.config/hypr/bindings.lua" ]]; then
     sed -i '/-- \[omarchy-gaming\]/,/-- \[\/omarchy-gaming\]/d' "$HOME/.config/hypr/bindings.lua"
   fi
-  omarchy plugin disable io.github.elias.gaming 2>/dev/null || true
+  omarchy plugin disable com.github.eliashaugsbakk.omarchy-gaming 2>/dev/null || true
   remove_menu_entries
 
   if [[ -f "$STATE_FILE" ]]; then
@@ -217,14 +217,14 @@ mkdir -p "$HOME/.config/omarchy/plugins"
 mkdir -p "$HOME/.local/state/omarchy/toggles/hypr"
 
 plugin_source=""
-if [[ -d /usr/share/omarchy/plugins/io.github.elias.gaming ]]; then
-  plugin_source=/usr/share/omarchy/plugins/io.github.elias.gaming
+if [[ -d /usr/share/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming ]]; then
+  plugin_source=/usr/share/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming
 elif [[ -d "$HOME/omarchy-gaming" ]]; then
   plugin_source="$HOME/omarchy-gaming"
 fi
 
 if [[ -n "$plugin_source" ]]; then
-  ln -sfn "$plugin_source" "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+  ln -sfn "$plugin_source" "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming"
   success "Plugin linked from $plugin_source"
 else
   warn "Gaming plugin files were not found; install the package or clone the repository first."
@@ -249,7 +249,7 @@ if command -v omarchy >/dev/null 2>&1 && [[ -n "$plugin_source" ]]; then
   fi
   # A discovered plugin is not necessarily enabled or present in the bar.
   # Enable it first; the placement belongs to `plugin enable`.
-  if omarchy plugin enable io.github.elias.gaming --section "$bar_section"; then
+  if omarchy plugin enable com.github.eliashaugsbakk.omarchy-gaming --section "$bar_section"; then
     success "Plugin activated and placed in the $bar_section bar section."
   else
     warn "Plugin was linked, but Omarchy could not enable/place it in the bar."

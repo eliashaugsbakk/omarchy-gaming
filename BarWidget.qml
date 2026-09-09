@@ -6,7 +6,7 @@ import qs.Ui
 
 BarWidget {
   id: root
-  moduleName: "io.github.elias.gaming"
+  moduleName: "com.github.eliashaugsbakk.omarchy-gaming"
 
   property bool isGaming: false
 
@@ -22,7 +22,7 @@ BarWidget {
   implicitHeight: button.implicitHeight
 
   IpcHandler {
-    target: "io.github.elias.gaming"
+    target: "com.github.eliashaugsbakk.omarchy-gaming"
 
     function toggle(): void {
       root.toggle()
