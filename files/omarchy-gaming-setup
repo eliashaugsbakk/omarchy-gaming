@@ -43,6 +43,17 @@ state_value() {
   esac
 }
 
+has_alternative_kernel() {
+  local package
+  while read -r package; do
+    [[ -n "$package" && "$package" != linux-cachyos ]] || continue
+    if [[ -e "/boot/vmlinuz-$package" ]]; then
+      return 0
+    fi
+  done < <(pacman -Qq 2>/dev/null | grep -E '^linux(-lts|-zen|-hardened)?$' || true)
+  return 1
+}
+
 remove_menu_entries() {
   [[ -f "$MENU_EXTENSION" ]] || return 0
   python3 - "$MENU_EXTENSION" <<'PY'
@@ -118,8 +129,14 @@ PY
     if [[ "$gamemode_added" == 1 ]] && prompt_yes_no "Remove GameMode packages installed by this setup?" n; then
       sudo pacman -Rns --noconfirm gamemode lib32-gamemode 2>/dev/null || true
     fi
-    if [[ "$kernel_added" == 1 && "$(uname -r)" != *cachyos* ]] && prompt_yes_no "Remove the CachyOS kernel installed by this setup?" n; then
-      sudo pacman -Rns --noconfirm linux-cachyos linux-cachyos-headers 2>/dev/null || true
+    if [[ "$kernel_added" == 1 ]]; then
+      if [[ "$(uname -r)" == *cachyos* ]]; then
+        warn "Keeping linux-cachyos because it is the running kernel."
+      elif ! has_alternative_kernel; then
+        warn "Keeping linux-cachyos because no other installed bootable kernel was found."
+      elif prompt_yes_no "Remove the CachyOS kernel installed by this setup?" n; then
+        sudo pacman -Rns --noconfirm linux-cachyos linux-cachyos-headers 2>/dev/null || true
+      fi
     fi
   fi
   rm -rf "$STATE_DIR"
