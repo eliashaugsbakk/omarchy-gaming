@@ -337,10 +337,33 @@ fi
 # --- Step 2: Hyprland Keybinding ---
 header "Step 2: Hyprland Keybinding"
 echo "Add Super + Ctrl + G shortcut to ~/.config/hypr/bindings.lua"
+echo "You can also bind the command 'omarchy-gaming-toggle' yourself."
 
 if [[ -f "$HOME/.config/hypr/bindings.lua" ]]; then
   if grep -q "omarchy-gaming-toggle" "$HOME/.config/hypr/bindings.lua"; then
     success "Keybinding already present in bindings.lua"
+  elif grep -q '"SUPER + CTRL + G"' "$HOME/.config/hypr/bindings.lua"; then
+    existing_binding=$(awk '
+      /"SUPER \+ CTRL \+ G"/ { found=1; next }
+      found && /"/ { gsub(/^[[:space:]]*|,[[:space:]]*$/, ""); print; exit }
+    ' "$HOME/.config/hypr/bindings.lua")
+    warn "Super + Ctrl + G is already assigned${existing_binding:+ to $existing_binding}."
+    if prompt_yes_no "Append the Omarchy Gaming binding as the replacement?" n; then
+      cat >> "$HOME/.config/hypr/bindings.lua" <<'BINDING'
+
+-- [omarchy-gaming]
+o.bind(
+  "SUPER + CTRL + G",
+  "Toggle gaming mode",
+  "omarchy-gaming-toggle"
+)
+-- [/omarchy-gaming]
+BINDING
+      sed -i 's/^binding_added=.*/binding_added=1/' "$STATE_FILE"
+      success "Added gaming binding; it takes precedence over the previous binding."
+    else
+      info "Keeping the existing binding. Add 'omarchy-gaming-toggle' to your preferred shortcut manually."
+    fi
   else
     if prompt_yes_no "Add 'Super + Ctrl + G' keybinding to bindings.lua?"; then
       cat >> "$HOME/.config/hypr/bindings.lua" <<'BINDING'
