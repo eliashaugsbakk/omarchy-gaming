@@ -1,15 +1,12 @@
 post_install() {
-  echo ":: Omarchy Gaming Mode installed successfully."
+  echo ":: ========================================================"
+  echo ":: Omarchy Gaming Mode installed successfully!"
   echo ":: "
-  echo ":: To enable the bar widget in Omarchy Shell:"
-  echo "::   omarchy bar move io.github.elias.gaming --section right"
+  echo ":: To complete setup (CachyOS kernel, gaming tools, bar widget):"
+  echo "::   Run: omarchy-gaming-setup"
   echo ":: "
-  echo ":: To enable Hyprland overrides when toggled, ensure gaming.lua is linked:"
-  echo "::   mkdir -p ~/.local/state/omarchy/toggles/hypr"
-  echo "::   cp /usr/share/omarchy/default/hypr/gaming.lua ~/.local/state/omarchy/toggles/hypr/gaming.lua"
-  echo ":: "
-  echo ":: Optional keybinding for ~/.config/hypr/bindings.lua:"
-  echo "::   o.bind(\"SUPER + CTRL + G\", \"Toggle gaming mode\", \"omarchy-gaming-toggle\")"
+  echo ":: Or launch 'Gaming Mode Setup' from your application menu (Super)."
+  echo ":: ========================================================"
 }
 
 post_upgrade() {
@@ -17,5 +14,5 @@ post_upgrade() {
 }
 
 post_remove() {
-  echo ":: Omarchy Gaming Mode removed. You may clean up user-level overrides in ~/.local/state/omarchy/toggles/hypr/gaming.lua if desired."
+  echo ":: Omarchy Gaming Mode package removed."
 }

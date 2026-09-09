@@ -1,0 +1,200 @@
+#!/bin/bash
+#
+# omarchy-gaming-setup
+# Interactive setup wizard for Omarchy Gaming Mode
+#
+
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+info()    { printf "${BLUE}::${NC} %s\n" "$*"; }
+success() { printf "${GREEN}✓${NC} %s\n" "$*"; }
+warn()    { printf "${YELLOW}⚠${NC} %s\n" "$*"; }
+error()   { printf "${RED}✗${NC} %s\n" "$*" >&2; }
+header()  { printf "\n${BOLD}%s${NC}\n" "$*"; }
+
+detect_cachyos_tier() {
+  local vendor family model flags
+  vendor=$(grep -m1 "^vendor_id" /proc/cpuinfo | awk '{print $NF}')
+  family=$(grep -m1 "^cpu family" /proc/cpuinfo | awk '{print $NF}')
+  model=$(grep -m1 "^model[[:space:]]" /proc/cpuinfo | awk '{print $NF}')
+  flags=$(grep -m1 "^flags" /proc/cpuinfo)
+
+  if [[ "$vendor" == "AuthenticAMD" ]]; then
+    if (( family == 26 )) || { (( family == 25 )) && (( model >= 96 )); }; then
+      echo "znver4"
+      return
+    fi
+    if (( family == 25 )); then
+      echo "znver3"
+      return
+    fi
+  fi
+
+  if echo "$flags" | grep -qw "avx512f"; then
+    echo "x86-64-v4"
+    return
+  fi
+  if echo "$flags" | grep -qw "avx2"; then
+    echo "x86-64-v3"
+    return
+  fi
+
+  echo "generic"
+}
+
+tier_mirrorlist_file() {
+  case "$1" in
+    znver4|znver3|x86-64-v4|x86-64-v3)
+      echo "/etc/pacman.d/cachyos-v4-mirrorlist"
+      ;;
+    *)
+      echo "/etc/pacman.d/cachyos-mirrorlist"
+      ;;
+  esac
+}
+
+prompt_yes_no() {
+  local prompt="$1"
+  local default="${2:-y}"
+  if command -v gum >/dev/null 2>&1; then
+    if gum confirm "$prompt"; then
+      return 0
+    else
+      return 1
+    fi
+  else
+    local choice
+    read -rp "$prompt [Y/n] " choice
+    choice="${choice:-$default}"
+    [[ "${choice,,}" == "y" || "${choice,,}" == "yes" ]]
+  fi
+}
+
+header "========================================"
+header "    Omarchy Gaming Mode Setup Wizard    "
+header "========================================"
+
+# --- Step 1: Plugin & Status Bar Setup ---
+header "Step 1: Omarchy Bar Widget & Plugin Setup"
+echo "Enables the Omarchy top bar widget (󰊴) with live state monitoring."
+
+mkdir -p "$HOME/.config/omarchy/plugins"
+mkdir -p "$HOME/.local/state/omarchy/toggles/hypr"
+
+if [[ -d /usr/share/omarchy/plugins/io.github.elias.gaming ]]; then
+  ln -sfn /usr/share/omarchy/plugins/io.github.elias.gaming "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+elif [[ -d "$HOME/omarchy-gaming" ]]; then
+  ln -sfn "$HOME/omarchy-gaming" "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+fi
+
+if [[ -f /usr/share/omarchy/default/hypr/gaming.lua ]]; then
+  cp "$usr_share_lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua" 2>/dev/null || cp /usr/share/omarchy/default/hypr/gaming.lua "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
+elif [[ -f "$HOME/omarchy-gaming/files/gaming.lua" ]]; then
+  cp "$HOME/omarchy-gaming/files/gaming.lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
+fi
+
+if command -v omarchy-shell >/dev/null 2>&1; then
+  omarchy-shell shell rescanPlugins || true
+fi
+
+if command -v omarchy >/dev/null 2>&1; then
+  omarchy bar move io.github.elias.gaming --section right || true
+  success "Plugin linked and added to the top bar."
+fi
+
+# --- Step 2: Hyprland Keybinding ---
+header "Step 2: Hyprland Keybinding"
+echo "Add Super + Ctrl + G shortcut to ~/.config/hypr/bindings.lua"
+
+if [[ -f "$HOME/.config/hypr/bindings.lua" ]]; then
+  if grep -q "omarchy-gaming-toggle" "$HOME/.config/hypr/bindings.lua"; then
+    success "Keybinding already present in bindings.lua"
+  else
+    if prompt_yes_no "Add 'Super + Ctrl + G' keybinding to bindings.lua?"; then
+      cat >> "$HOME/.config/hypr/bindings.lua" <<'BINDING'
+
+-- [omarchy-gaming]
+o.bind(
+  "SUPER + CTRL + G",
+  "Toggle gaming mode",
+  "omarchy-gaming-toggle"
+)
+-- [/omarchy-gaming]
+BINDING
+      hyprctl reload &>/dev/null || true
+      success "Added keybinding to ~/.config/hypr/bindings.lua"
+    fi
+  fi
+fi
+
+# --- Step 3: Optional Gaming Tools ---
+header "Step 3: Linux Gaming Tools"
+echo "Install recommended packages: gamemode, lib32-gamemode, mangohud, gamescope"
+echo "  • gamemode: Auto-renicing and priority scheduling for games"
+echo "  • mangohud: In-game FPS, frametime, and temperature HUD"
+echo "  • gamescope: Micro-compositor for resolution scaling / HDR"
+
+if prompt_yes_no "Install recommended gaming tools?"; then
+  sudo pacman -S --needed --noconfirm gamemode lib32-gamemode mangohud gamescope vulkan-tools || warn "Could not install all tools."
+  success "Gaming tools installed."
+fi
+
+# --- Step 4: CachyOS Kernel & Architecture Repos ---
+header "Step 4: Performance Kernel (CachyOS + BORE Scheduler)"
+tier=$(detect_cachyos_tier)
+echo "Detected CPU optimization tier: ${BOLD}$tier${NC}"
+echo ""
+echo "PROS:"
+echo "  + BORE (Burst-Oriented Response Enhancer) CPU scheduler minimizes frame stutter"
+echo "  + Architecture-optimized packages compiled for your specific CPU instructions ($tier)"
+echo "  + High-performance default sysctl / vm tweaks"
+echo "CONS:"
+echo "  - Adds CachyOS pacman repository mirrorlist"
+echo "  - Requires sudo and bootloader update / reboot"
+echo ""
+
+if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tier)?"; then
+  cachyos_url="https://cdn77.cachyos.org/repo/x86_64/cachyos"
+  info "Installing CachyOS keyring..."
+  sudo pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com || true
+  sudo pacman-key --lsign-key F3B607488DB35A47 || true
+
+  sudo pacman -U --noconfirm \
+    "$cachyos_url/cachyos-keyring-20240331-1-any.pkg.tar.zst" \
+    "$cachyos_url/cachyos-mirrorlist-19-1-any.pkg.tar.zst" \
+    "$cachyos_url/cachyos-v4-mirrorlist-5-1-any.pkg.tar.zst" || warn "Keyring package download failed."
+
+  mirrorlist=$(tier_mirrorlist_file "$tier")
+  repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
+
+  if ! grep -q "cachyos" /etc/pacman.conf 2>/dev/null; then
+    sudo python3 -c '
+import sys
+block = sys.argv[1]
+with open("/etc/pacman.conf", "r") as f:
+    content = f.read()
+if "[core]" in content:
+    content = content.replace("[core]", block + "\n[core]", 1)
+    with open("/etc/pacman.conf", "w") as f:
+        f.write(content)
+' "$(echo -e "$repo_block")"
+    success "Added CachyOS ($tier) to /etc/pacman.conf"
+    sudo pacman -Sy
+  fi
+
+  info "Installing linux-cachyos kernel and headers..."
+  sudo pacman -S --noconfirm linux-cachyos linux-cachyos-headers || warn "Kernel installation failed."
+  success "linux-cachyos installed!"
+  warn "Remember to update your bootloader (e.g. 'sudo bootctl update') and reboot into linux-cachyos."
+fi
+
+header "========================================"
+success "Omarchy Gaming setup complete!"
+header "========================================"
