@@ -17,6 +17,10 @@ is_cachyos_kernel() {
   [[ $(uname -r) =~ cachyos ]]
 }
 
+is_cachyos_kernel_installed() {
+  command -v pacman >/dev/null 2>&1 && pacman -Q linux-cachyos >/dev/null 2>&1
+}
+
 toggle_to_gaming() {
   omarchy-toggle gaming on
   hyprctl reload || true
@@ -47,7 +51,7 @@ else
       reasons+=("Not plugged into AC")
     fi
 
-    if ! is_cachyos_kernel; then
+    if is_cachyos_kernel_installed && ! is_cachyos_kernel; then
       reasons+=("Running non-CachyOS kernel ($(uname -r))")
     fi
 

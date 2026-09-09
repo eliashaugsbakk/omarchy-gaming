@@ -74,7 +74,7 @@ When enabled, the toggle:
 - Removes workspace gaps and decoration for the gaming workspace.
 - Inhibits idle/sleep, disables the screensaver, and silences notifications.
 - Selects the performance power profile.
-- Warns if the machine is on battery or is not running a CachyOS kernel.
+- Warns if the machine is on battery or, when installed, is not running the CachyOS kernel.
 
 The bar plugin and keyboard shortcut both call the same
 `omarchy-gaming-toggle` program, so they share one state and one set of safety
