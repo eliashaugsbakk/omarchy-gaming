@@ -43,7 +43,9 @@ BarWidget {
 
   Process {
     id: toggleProc
-    command: ["sh", "-c", "if command -v omarchy-gaming-toggle >/dev/null 2>&1; then omarchy-gaming-toggle; else if [ -f \"$HOME/.local/state/omarchy/toggles/gaming\" ]; then omarchy-toggle gaming off && hyprctl reload || true; omarchy-shell notifications setDnd off || true; omarchy toggle idle allow-idle || true; omarchy-powerprofiles-set autodetect power-saver || true; else omarchy-toggle gaming on && hyprctl reload || true; omarchy-shell notifications setDnd on || true; omarchy toggle idle stay-awake || true; omarchy-powerprofiles-set autodetect performance || true; fi; fi"]
+    // Keep all state changes and safety checks in the project's toggle script.
+    // The AUR package installs that script alongside this plugin.
+    command: ["sh", "-c", "command -v omarchy-gaming-toggle >/dev/null 2>&1 && exec omarchy-gaming-toggle || { printf '%s\\n' 'omarchy-gaming-toggle is not installed' >&2; exit 127; }"]
     onExited: function(exitCode) {
       root.checkState()
     }

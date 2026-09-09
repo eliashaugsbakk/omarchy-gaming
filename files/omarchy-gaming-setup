@@ -88,10 +88,18 @@ echo "Enables the Omarchy top bar widget (󰊴) with live state monitoring."
 mkdir -p "$HOME/.config/omarchy/plugins"
 mkdir -p "$HOME/.local/state/omarchy/toggles/hypr"
 
+plugin_source=""
 if [[ -d /usr/share/omarchy/plugins/io.github.elias.gaming ]]; then
-  ln -sfn /usr/share/omarchy/plugins/io.github.elias.gaming "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+  plugin_source=/usr/share/omarchy/plugins/io.github.elias.gaming
 elif [[ -d "$HOME/omarchy-gaming" ]]; then
-  ln -sfn "$HOME/omarchy-gaming" "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+  plugin_source="$HOME/omarchy-gaming"
+fi
+
+if [[ -n "$plugin_source" ]]; then
+  ln -sfn "$plugin_source" "$HOME/.config/omarchy/plugins/io.github.elias.gaming"
+  success "Plugin linked from $plugin_source"
+else
+  warn "Gaming plugin files were not found; install the package or clone the repository first."
 fi
 
 if [[ -f /usr/share/omarchy/default/hypr/gaming.lua ]]; then
@@ -100,13 +108,21 @@ elif [[ -f "$HOME/omarchy-gaming/files/gaming.lua" ]]; then
   cp "$HOME/omarchy-gaming/files/gaming.lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
 fi
 
-if command -v omarchy-shell >/dev/null 2>&1; then
+if command -v omarchy-shell >/dev/null 2>&1 && [[ -n "$plugin_source" ]]; then
   omarchy-shell shell rescanPlugins || true
 fi
 
-if command -v omarchy >/dev/null 2>&1; then
-  omarchy bar move io.github.elias.gaming --section right || true
-  success "Plugin linked and added to the top bar."
+if command -v omarchy >/dev/null 2>&1 && [[ -n "$plugin_source" ]]; then
+  bar_section="${OMARCHY_GAMING_BAR_SECTION:-right}"
+  if [[ ! "$bar_section" =~ ^(left|center|right)$ ]]; then
+    warn "Invalid OMARCHY_GAMING_BAR_SECTION='$bar_section'; using right."
+    bar_section=right
+  fi
+  if omarchy bar move io.github.elias.gaming --section "$bar_section"; then
+    success "Plugin activated and placed in the $bar_section bar section."
+  else
+    warn "Plugin was linked, but Omarchy could not place it in the bar."
+  fi
 fi
 
 # --- Step 2: Hyprland Keybinding ---
@@ -136,14 +152,16 @@ fi
 
 # --- Step 3: Optional Gaming Tools ---
 header "Step 3: Linux Gaming Tools"
-echo "Install recommended packages: gamemode, lib32-gamemode, mangohud, gamescope"
+echo "Install GameMode packages: gamemode, lib32-gamemode"
 echo "  • gamemode: Auto-renicing and priority scheduling for games"
-echo "  • mangohud: In-game FPS, frametime, and temperature HUD"
-echo "  • gamescope: Micro-compositor for resolution scaling / HDR"
+echo "  • lib32-gamemode: 32-bit GameMode library support"
 
-if prompt_yes_no "Install recommended gaming tools?"; then
-  sudo pacman -S --needed --noconfirm gamemode lib32-gamemode mangohud gamescope vulkan-tools || warn "Could not install all tools."
-  success "Gaming tools installed."
+if prompt_yes_no "Install GameMode?"; then
+  if sudo pacman -S --needed --noconfirm gamemode lib32-gamemode; then
+    success "GameMode installed."
+  else
+    warn "GameMode installation failed."
+  fi
 fi
 
 # --- Step 4: CachyOS Kernel & Architecture Repos ---
@@ -175,23 +193,33 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
   repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
 
   if ! grep -q "cachyos" /etc/pacman.conf 2>/dev/null; then
-    sudo python3 -c '
+    if sudo python3 -c '
 import sys
 block = sys.argv[1]
 with open("/etc/pacman.conf", "r") as f:
     content = f.read()
-if "[core]" in content:
-    content = content.replace("[core]", block + "\n[core]", 1)
-    with open("/etc/pacman.conf", "w") as f:
-        f.write(content)
-' "$(echo -e "$repo_block")"
-    success "Added CachyOS ($tier) to /etc/pacman.conf"
-    sudo pacman -Sy
+if "[core]" not in content:
+    raise SystemExit("[core] repository was not found in /etc/pacman.conf")
+content = content.replace("[core]", block + "\n[core]", 1)
+with open("/etc/pacman.conf", "w") as f:
+    f.write(content)
+' "$(echo -e "$repo_block")"; then
+      success "Added CachyOS ($tier) to /etc/pacman.conf"
+    else
+      error "Could not update /etc/pacman.conf; skipping kernel installation."
+      exit 1
+    fi
   fi
 
+  info "Refreshing package databases..."
+  sudo pacman -Sy
+
   info "Installing linux-cachyos kernel and headers..."
-  sudo pacman -S --noconfirm linux-cachyos linux-cachyos-headers || warn "Kernel installation failed."
-  success "linux-cachyos installed!"
+  if sudo pacman -S --needed --noconfirm linux-cachyos linux-cachyos-headers; then
+    success "linux-cachyos installed!"
+  else
+    warn "Kernel installation failed."
+  fi
   warn "Remember to update your bootloader (e.g. 'sudo bootctl update') and reboot into linux-cachyos."
 fi
 
