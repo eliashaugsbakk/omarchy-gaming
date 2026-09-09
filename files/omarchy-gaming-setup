@@ -260,6 +260,7 @@ if [[ ! -e "$HOME/.local/state/omarchy/toggles/gaming" && "$gaming_flag_added" =
 if [[ ! -e "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua" && "$gaming_lua_added" == 0 ]]; then gaming_lua_added=1; fi
 if [[ ! -e "$HOME/.config/omarchy/plugins/com.github.eliashaugsbakk.omarchy-gaming" && "$plugin_link_added" == 0 ]]; then plugin_link_added=1; fi
 
+install_mode() {
 header "========================================"
 header "    Omarchy Gaming Mode Setup Wizard    "
 header "========================================"
@@ -494,3 +495,6 @@ touch "$STATE_DIR/installed"
 header "========================================"
 success "Omarchy Gaming setup complete!"
 header "========================================"
+}
+
+install_mode
