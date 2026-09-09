@@ -240,8 +240,8 @@ else
 fi
 install_menu_entries
 
-if [[ -f /usr/share/omarchy/default/hypr/gaming.lua ]]; then
-  cp /usr/share/omarchy/default/hypr/gaming.lua "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
+if [[ -f /usr/share/omarchy-gaming/gaming.lua ]]; then
+  cp /usr/share/omarchy-gaming/gaming.lua "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
 elif [[ -f "$HOME/omarchy-gaming/files/gaming.lua" ]]; then
   cp "$HOME/omarchy-gaming/files/gaming.lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
 fi

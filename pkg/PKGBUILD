@@ -38,7 +38,7 @@ package() {
   install -Dm644 "manifest.json" "${plugindir}/manifest.json"
   install -Dm644 "BarWidget.qml" "${plugindir}/BarWidget.qml"
 
-  # 4. Install Hyprland compositor override template
-  install -Dm644 "files/gaming.lua" "${pkgdir}/usr/share/omarchy/default/hypr/gaming.lua"
+  # 4. Install Hyprland compositor override template in project-owned data
+  install -Dm644 "files/gaming.lua" "${pkgdir}/usr/share/omarchy-gaming/gaming.lua"
 
 }
