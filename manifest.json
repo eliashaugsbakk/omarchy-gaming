@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.elias.gaming",
+  "name": "Gaming Mode",
+  "version": "1.0.0",
+  "author": "Elias",
+  "license": "MIT",
+  "description": "One-click toggle and status indicator for competitive low-latency gaming mode.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Gaming Mode",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

@@ -1,0 +1,44 @@
+# Maintainer: Elias
+pkgname=omarchy-gaming-git
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="One-click low-latency gaming mode integration and status bar widget for Omarchy Linux"
+arch=('x86_64')
+url="https://github.com/eliashaugsbakk/omarchy-gaming"
+license=('MIT')
+depends=('bash' 'hyprland' 'upower')
+optdepends=(
+  'gamemode: User-space daemon for resource prioritization'
+  'lib32-gamemode: 32-bit GameMode library support'
+  'gamescope: Micro-compositor for gaming on Wayland'
+  'mangohud: Vulkan and OpenGL overlay for monitoring FPS and temperatures'
+  'vulkan-tools: Vulkan debugging tools and capabilities'
+  'linux-cachyos: Performance-optimized kernel with BORE scheduler'
+)
+install=omarchy-gaming.install
+source=("git+${url}.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${srcdir}/omarchy-gaming"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+package() {
+  cd "${srcdir}/omarchy-gaming"
+
+  # 1. Install CLI toggle script
+  install -Dm755 "files/omarchy-gaming-toggle" "${pkgdir}/usr/bin/omarchy-gaming-toggle"
+
+  # 2. Install global system / environment configs
+  install -Dm644 "files/gamemode.ini" "${pkgdir}/etc/gamemode.ini"
+  install -Dm644 "files/gaming.conf" "${pkgdir}/etc/environment.d/99-gaming.conf"
+
+  # 3. Install Omarchy Quattro shell plugin files
+  local plugindir="${pkgdir}/usr/share/omarchy/plugins/io.github.elias.gaming"
+  install -Dm644 "manifest.json" "${plugindir}/manifest.json"
+  install -Dm644 "BarWidget.qml" "${plugindir}/BarWidget.qml"
+
+  # 4. Install Hyprland compositor override template
+  install -Dm644 "files/gaming.lua" "${pkgdir}/usr/share/omarchy/default/hypr/gaming.lua"
+}
