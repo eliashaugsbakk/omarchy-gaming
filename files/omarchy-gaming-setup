@@ -118,10 +118,12 @@ if command -v omarchy >/dev/null 2>&1 && [[ -n "$plugin_source" ]]; then
     warn "Invalid OMARCHY_GAMING_BAR_SECTION='$bar_section'; using right."
     bar_section=right
   fi
-  if omarchy bar move io.github.elias.gaming --section "$bar_section"; then
+  # A discovered plugin is not necessarily enabled or present in the bar.
+  # Enable it first; the placement belongs to `plugin enable`.
+  if omarchy plugin enable io.github.elias.gaming --section "$bar_section"; then
     success "Plugin activated and placed in the $bar_section bar section."
   else
-    warn "Plugin was linked, but Omarchy could not place it in the bar."
+    warn "Plugin was linked, but Omarchy could not enable/place it in the bar."
   fi
 fi
 
@@ -179,15 +181,36 @@ echo "  - Requires sudo and bootloader update / reboot"
 echo ""
 
 if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tier)?"; then
-  cachyos_url="https://cdn77.cachyos.org/repo/x86_64/cachyos"
+  cachyos_url="https://mirror.cachyos.org/repo/x86_64/cachyos"
   info "Installing CachyOS keyring..."
   sudo pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com || true
   sudo pacman-key --lsign-key F3B607488DB35A47 || true
 
+  latest_cachyos_pkg() {
+    local package_prefix="$1"
+    curl -fsSL "$cachyos_url/" \
+      | grep -oE "${package_prefix}-[^\"< ]+\.pkg\.tar\.zst" \
+      | sort -Vu \
+      | tail -n1
+  }
+
+  if ! command -v curl >/dev/null 2>&1; then
+    error "curl is required to retrieve the current CachyOS package filenames."
+    exit 1
+  fi
+
+  keyring_pkg=$(latest_cachyos_pkg cachyos-keyring)
+  mirrorlist_pkg=$(latest_cachyos_pkg cachyos-mirrorlist)
+  v4_mirrorlist_pkg=$(latest_cachyos_pkg cachyos-v4-mirrorlist)
+  if [[ -z "$keyring_pkg" || -z "$mirrorlist_pkg" || -z "$v4_mirrorlist_pkg" ]]; then
+    error "Could not find current CachyOS keyring/mirrorlist packages at $cachyos_url"
+    exit 1
+  fi
+
   sudo pacman -U --noconfirm \
-    "$cachyos_url/cachyos-keyring-20240331-1-any.pkg.tar.zst" \
-    "$cachyos_url/cachyos-mirrorlist-19-1-any.pkg.tar.zst" \
-    "$cachyos_url/cachyos-v4-mirrorlist-5-1-any.pkg.tar.zst" || warn "Keyring package download failed."
+    "$cachyos_url/$keyring_pkg" \
+    "$cachyos_url/$mirrorlist_pkg" \
+    "$cachyos_url/$v4_mirrorlist_pkg"
 
   mirrorlist=$(tier_mirrorlist_file "$tier")
   repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
