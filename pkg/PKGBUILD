@@ -10,9 +10,6 @@ depends=('bash' 'hyprland' 'upower')
 optdepends=(
   'gamemode: User-space daemon for resource prioritization'
   'lib32-gamemode: 32-bit GameMode library support'
-  'gamescope: Micro-compositor for gaming on Wayland'
-  'mangohud: Vulkan and OpenGL overlay for monitoring FPS and temperatures'
-  'vulkan-tools: Vulkan debugging tools and capabilities'
   'linux-cachyos: Performance-optimized kernel with BORE scheduler'
   'gum: Modern interactive CLI prompts for setup wizard'
 )

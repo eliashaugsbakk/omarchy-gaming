@@ -1,12 +1,7 @@
 post_install() {
-  echo ":: ========================================================"
-  echo ":: Omarchy Gaming Mode installed successfully!"
-  echo ":: "
-  echo ":: To complete setup (CachyOS kernel, gaming tools, bar widget):"
-  echo "::   Run: omarchy-gaming-setup"
-  echo ":: "
-  echo ":: Or launch 'Gaming Mode Setup' from your application menu (Super)."
-  echo ":: ========================================================"
+  echo ":: Omarchy Gaming installed."
+  echo ":: Complete setup with: omarchy-gaming-setup"
+  echo ":: Or launch 'Gaming Mode Setup' from the application menu."
 }
 
 post_upgrade() {

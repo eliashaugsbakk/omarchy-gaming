@@ -215,6 +215,12 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
   mirrorlist=$(tier_mirrorlist_file "$tier")
   repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
 
+  pacman_arch=""
+  case "$tier" in
+    znver4|x86-64-v4) pacman_arch="x86_64_v4" ;;
+    znver3|x86-64-v3) pacman_arch="x86_64_v3" ;;
+  esac
+
   if ! grep -q "cachyos" /etc/pacman.conf 2>/dev/null; then
     if sudo python3 -c '
 import sys
@@ -230,6 +236,33 @@ with open("/etc/pacman.conf", "w") as f:
       success "Added CachyOS ($tier) to /etc/pacman.conf"
     else
       error "Could not update /etc/pacman.conf; skipping kernel installation."
+      exit 1
+    fi
+  fi
+
+  if [[ -n "$pacman_arch" ]]; then
+    if sudo python3 - "$pacman_arch" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path("/etc/pacman.conf")
+arch = sys.argv[1]
+lines = path.read_text().splitlines()
+for index, line in enumerate(lines):
+    if line.strip().startswith("Architecture ="):
+        values = line.split("=", 1)[1].split()
+        if arch not in values:
+            values.append(arch)
+            lines[index] = "Architecture = " + " ".join(values)
+        break
+else:
+    lines.insert(0, "Architecture = auto " + arch)
+path.write_text("\n".join(lines) + "\n")
+PY
+    then
+      success "Enabled pacman architecture $pacman_arch"
+    else
+      error "Could not enable pacman architecture $pacman_arch."
       exit 1
     fi
   fi
