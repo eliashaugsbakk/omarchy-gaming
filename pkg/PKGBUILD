@@ -41,15 +41,4 @@ package() {
   # 4. Install Hyprland compositor override template
   install -Dm644 "files/gaming.lua" "${pkgdir}/usr/share/omarchy/default/hypr/gaming.lua"
 
-  # 5. Install Desktop entry for application launcher / settings
-  install -Dm644 /dev/stdin "${pkgdir}/usr/share/applications/omarchy-gaming-setup.desktop" <<'DESKTOP'
-[Desktop Entry]
-Name=Gaming Mode Setup
-Comment=Configure Omarchy Gaming Mode, CachyOS kernel, and widgets
-Exec=omarchy-launch-floating-terminal-with-presentation omarchy-gaming-setup
-Icon=applications-games
-Terminal=false
-Type=Application
-Categories=Settings;System;Game;
-DESKTOP
 }
