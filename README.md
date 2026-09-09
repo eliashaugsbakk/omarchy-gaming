@@ -10,7 +10,7 @@
 # Omarchy Gaming Mode (unofficial)
 
 An unofficial gaming-performance mode for Omarchy. Install the package, choose
-`Install → Gaming → Omarchy Gaming Mode` from the Omarchy menu, and use the
+`Install → Gaming → Gaming Mode` from the Omarchy menu, and use the
 bar icon or `Super + Ctrl + G` to turn the mode on and off. The setup can also
 install GameMode and optionally configure the CachyOS kernel and repositories.
 
@@ -36,7 +36,7 @@ makepkg -si
 After installation, open the Omarchy menu:
 
 ```text
-Install → Gaming → Omarchy Gaming Mode
+Install → Gaming → Gaming Mode
 ```
 
 The setup wizard installs the user integration, adds the plugin to the bar,
@@ -56,7 +56,7 @@ Valid sections are `left`, `center`, and `right`.
 Use:
 
 ```text
-Remove → Gaming → Omarchy Gaming Mode
+Remove → Gaming → Gaming Mode
 ```
 
 Removal deletes the integration created by setup and only offers to remove

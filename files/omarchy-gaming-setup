@@ -88,8 +88,8 @@ json_content = '\n'.join(line.split('//', 1)[0] for line in body.splitlines()).s
 if json_content not in ('', '{') and not body.endswith(','):
     body += ','
 entries = '''
-  "install.gaming.omarchy-gaming": {"icon":"󰊴","label":"Omarchy Gaming Mode","when":"[[ ! -f \\"$HOME/.local/state/omarchy-gaming/installed\\" ]]","action":"omarchy-launch-floating-terminal-with-presentation omarchy-gaming-setup"},
-  "remove.gaming.omarchy-gaming": {"icon":"󰊴","label":"Omarchy Gaming Mode","when":"[[ -f \\"$HOME/.local/state/omarchy-gaming/installed\\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-gaming-setup --remove'"}
+  "install.gaming.omarchy-gaming": {"icon":"󰊴","label":"Gaming Mode","when":"[[ ! -f \\"$HOME/.local/state/omarchy-gaming/installed\\" ]]","action":"omarchy-launch-floating-terminal-with-presentation omarchy-gaming-setup"},
+  "remove.gaming.omarchy-gaming": {"icon":"󰊴","label":"Gaming Mode","when":"[[ -f \\"$HOME/.local/state/omarchy-gaming/installed\\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-gaming-setup --remove'"}
 '''
 path.write_text(body + entries + '}\n')
 PY

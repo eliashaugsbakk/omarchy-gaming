@@ -8,7 +8,7 @@ post_install() {
     fi
   fi
   echo ":: Open the Omarchy menu and choose:"
-  echo ":: Install -> Gaming -> Omarchy Gaming Mode"
+  echo ":: Install -> Gaming -> Gaming Mode"
   echo ":: The setup wizard installs the user integration, bar plugin,"
   echo ":: Super + Ctrl + G shortcut, and GameMode."
   echo ":: It can optionally configure CachyOS kernel support."
