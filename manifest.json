@@ -3,9 +3,9 @@
   "id": "com.github.eliashaugsbakk.omarchy-gaming",
   "name": "Gaming Mode",
   "version": "1.0.0",
-  "author": "Elias",
+  "author": "Elias Haugsbakk",
   "license": "MIT",
-  "description": "One-click toggle and status indicator for competitive low-latency gaming mode.",
+  "description": "One-click toggle and status indicator for low-latency gaming mode.",
   "kinds": [
     "bar-widget"
   ],
