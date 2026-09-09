@@ -1,5 +1,12 @@
 post_install() {
   echo ":: Omarchy Gaming installed."
+  if [[ -n "${SUDO_USER:-}" ]] && command -v runuser >/dev/null 2>&1; then
+    user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    if [[ -n "$user_home" ]]; then
+      runuser -u "$SUDO_USER" -- env HOME="$user_home" /usr/bin/omarchy-gaming-setup --menu-only || \
+        echo ":: Could not add the Omarchy Gaming menu entry automatically."
+    fi
+  fi
   echo ":: Open the Omarchy menu and choose:"
   echo ":: Install -> Gaming -> Omarchy Gaming Mode"
   echo ":: The setup wizard installs the user integration, bar plugin,"

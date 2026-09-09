@@ -13,6 +13,7 @@ MENU_EXTENSION="$HOME/.config/omarchy/extensions/omarchy-menu.jsonc"
 for arg in "$@"; do
   case "$arg" in
     --remove|--uninstall) mode=remove ;;
+    --menu-only) mode=menu-only ;;
     --help|-h)
       echo "Usage: omarchy-gaming-setup [--remove]"
       exit 0
@@ -83,7 +84,8 @@ if '"install.gaming.omarchy-gaming"' in text:
 if not text.rstrip().endswith('}'):
     raise SystemExit("menu extension does not end with an object")
 body = text.rstrip()[:-1].rstrip()
-if body and not body.endswith(','):
+json_content = '\n'.join(line.split('//', 1)[0] for line in body.splitlines()).strip()
+if json_content not in ('', '{') and not body.endswith(','):
     body += ','
 entries = '''
   "install.gaming.omarchy-gaming": {"icon":"󰊴","label":"Omarchy Gaming Mode","when":"[[ ! -f \\"$HOME/.local/state/omarchy-gaming/installed\\" ]]","action":"omarchy-launch-floating-terminal-with-presentation omarchy-gaming-setup"},
@@ -220,6 +222,11 @@ if [[ "$mode" == remove ]]; then
   remove_installation
 fi
 
+if [[ "$mode" == menu-only ]]; then
+  install_menu_entries
+  exit 0
+fi
+
 mkdir -p "$STATE_DIR"
 if [[ -f "$STATE_FILE" ]]; then
   # Preserve ownership flags across repair/setup runs.
@@ -238,6 +245,15 @@ else
   gaming_lua_added=0
   plugin_link_added=0
   binding_added=0
+  cat > "$STATE_FILE" <<'EOF'
+gamemode_added=0
+kernel_added=0
+repo_added=0
+gaming_flag_added=0
+gaming_lua_added=0
+plugin_link_added=0
+binding_added=0
+EOF
 fi
 : "${gamemode_added:=0}"
 : "${kernel_added:=0}"
