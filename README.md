@@ -7,8 +7,8 @@
 # omarchy-gaming
 
 One-keybind gaming mode for [Omarchy](https://omarchy.org/) Linux. Press
-**Super + Ctrl + G** to toggle between a development-focused desktop and a
-low-latency competitive gaming setup — then press it again to switch back.
+**Super + Ctrl + G** to toggle between a work-focused desktop and a
+low-latency competitive gaming setup optimized for CS2, which runs natively on linux, then press it again to switch back.
 
 This repo is the single source of truth for the entire gaming mode
 implementation. It contains every file, explains every design decision, and
