@@ -95,7 +95,7 @@ elif [[ -d "$HOME/omarchy-gaming" ]]; then
 fi
 
 if [[ -f /usr/share/omarchy/default/hypr/gaming.lua ]]; then
-  cp "$usr_share_lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua" 2>/dev/null || cp /usr/share/omarchy/default/hypr/gaming.lua "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
+  cp /usr/share/omarchy/default/hypr/gaming.lua "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
 elif [[ -f "$HOME/omarchy-gaming/files/gaming.lua" ]]; then
   cp "$HOME/omarchy-gaming/files/gaming.lua" "$HOME/.local/state/omarchy/toggles/hypr/gaming.lua"
 fi
