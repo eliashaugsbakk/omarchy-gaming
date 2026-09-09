@@ -21,6 +21,15 @@ header()  { printf "\n${BOLD}%s${NC}\n" "$*"; }
 
 detect_cachyos_tier() {
   local vendor family model flags
+
+  # Virtual machines may expose the host's CPU model while not reliably
+  # supporting the corresponding optimized package ABI. Use generic packages
+  # in guests; users can still select CachyOS repos and the kernel manually.
+  if grep -qm1 '^flags.*\bhypervisor\b' /proc/cpuinfo; then
+    echo "generic"
+    return
+  fi
+
   vendor=$(grep -m1 "^vendor_id" /proc/cpuinfo | awk '{print $NF}')
   family=$(grep -m1 "^cpu family" /proc/cpuinfo | awk '{print $NF}')
   model=$(grep -m1 "^model[[:space:]]" /proc/cpuinfo | awk '{print $NF}')
