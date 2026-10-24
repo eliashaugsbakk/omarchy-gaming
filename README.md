@@ -76,6 +76,10 @@ any architecture setting it added. Removal asks before deleting the ownership
 record and backup; keeping them allows a later retry. The currently running
 kernel is never removed.
 
+Removing the package also attempts to run this same user-level cleanup. If you
+remove only the integration from the Omarchy menu, the package remains
+installed and the wizard tells you that it can be removed separately.
+
 ## For technical users
 
 ### What gaming mode does

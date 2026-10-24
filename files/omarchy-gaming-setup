@@ -14,6 +14,7 @@ MENU_EXTENSION="$HOME/.config/omarchy/extensions/omarchy-menu.jsonc"
 for arg in "$@"; do
   case "$arg" in
     --remove|--uninstall) mode=remove ;;
+    --package-removed) package_removed=1; mode=remove ;;
     --menu-only) mode=menu-only ;;
     --help|-h)
       echo "Usage: omarchy-gaming-setup [--remove]"
@@ -159,6 +160,9 @@ remove_installation() {
     omarchy-shell shell rescanPlugins &>/dev/null || true
   fi
   success "Omarchy Gaming removed."
+  if [[ "${package_removed:-0}" != 1 ]] && pacman -Q omarchy-gaming-git &>/dev/null; then
+    info "The omarchy-gaming package is still installed. Remove it separately if you no longer need it."
+  fi
   exit 0
 }
 

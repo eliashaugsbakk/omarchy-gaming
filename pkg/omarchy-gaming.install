@@ -19,6 +19,16 @@ post_upgrade() {
   post_install
 }
 
-post_remove() {
-  echo ":: Omarchy Gaming Mode package removed."
+pre_remove() {
+  if [[ -n "${SUDO_USER:-}" ]] && command -v runuser >/dev/null 2>&1; then
+    user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    if [[ -n "$user_home" ]] && [[ -x /usr/bin/omarchy-gaming-setup ]]; then
+      runuser -u "$SUDO_USER" -- env HOME="$user_home" \
+        /usr/bin/omarchy-gaming-setup --remove --package-removed || \
+        echo ":: Could not remove the Omarchy Gaming user integration automatically."
+    fi
+  else
+    echo ":: Could not identify the desktop user; remove the Omarchy Gaming integration manually."
+  fi
+  echo ":: Omarchy Gaming package and integration removed."
 }
