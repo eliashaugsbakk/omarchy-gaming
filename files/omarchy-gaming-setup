@@ -555,7 +555,10 @@ PY
   else
     warn "Kernel installation failed."
   fi
-  warn "Remember to update your bootloader (e.g. 'sudo bootctl update') and reboot into linux-cachyos."
+  warn "CachyOS was installed, but it was not made the default boot entry."
+  warn "At the next reboot, select the entry labelled with the CachyOS kernel."
+  warn "After confirming it works, you can make it the default in your bootloader settings."
+  warn "Your existing kernels remain available as fallback options."
 fi
 
 touch "$STATE_DIR/installed"

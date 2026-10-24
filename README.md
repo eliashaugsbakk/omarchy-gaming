@@ -48,6 +48,9 @@ system package repositories and may require a reboot, so test it in a VM
 snapshot first when possible. Virtual machines are detected and use the
 generic CachyOS package tier; a VM will not meaningfully test GPU direct
 scanout, tearing, power profiles, battery checks, or real game performance.
+After installation, CachyOS is not automatically made the default boot entry.
+Select the entry labelled with the CachyOS kernel manually at the next reboot;
+existing kernels remain available as fallback options.
 
 Choose a bar section with:
 

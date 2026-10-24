@@ -8,10 +8,9 @@ url="https://github.com/eliashaugsbakk/omarchy-gaming"
 license=('MIT')
 depends=('bash' 'curl' 'hyprland' 'omarchy>=4.0.3' 'upower')
 optdepends=(
-  'gamemode: User-space daemon for resource prioritization'
-  'lib32-gamemode: 32-bit GameMode library support'
-  'linux-cachyos: Performance-optimized kernel with BORE scheduler'
-  'gum: Modern interactive CLI prompts for setup wizard'
+  'gamemode: Optional setup choice: prioritizes game processes and adjusts scheduling'
+  'lib32-gamemode: Optional setup choice: GameMode support for 32-bit games'
+  'linux-cachyos: Optional setup choice: CachyOS low-latency kernel with BORE scheduler'
 )
 install=omarchy-gaming.install
 source=("git+${url}.git#branch=next")

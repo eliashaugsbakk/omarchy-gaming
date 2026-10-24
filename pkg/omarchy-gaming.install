@@ -12,7 +12,7 @@ post_install() {
         echo ":: Could not add the Omarchy Gaming menu entry automatically."
     fi
   fi
-  printf '\033[1;33mThe wizard will configure the user integration, bar plugin, shortcut, and optional GameMode/CachyOS support.\033[0m\n\n'
+  printf '\033[1;33mThe wizard will now configure the integration and ask whether to install optional GameMode or CachyOS support.\033[0m\n\n'
 }
 
 post_upgrade() {
