@@ -43,6 +43,12 @@ The setup wizard installs the user integration, adds the plugin to the bar,
 adds `Super + Ctrl + G`, installs GameMode, and optionally configures CachyOS.
 Most users do not need to edit any files manually.
 
+The CachyOS/kernel step is optional and defaults to not running. It changes
+system package repositories and may require a reboot, so test it in a VM
+snapshot first when possible. Virtual machines are detected and use the
+generic CachyOS package tier; a VM will not meaningfully test GPU direct
+scanout, tearing, power profiles, battery checks, or real game performance.
+
 Choose a bar section with:
 
 ```bash
@@ -61,7 +67,11 @@ Remove → Gaming → Gaming Mode
 
 Removal deletes the integration created by setup and only offers to remove
 GameMode, CachyOS repositories, or the CachyOS kernel when this setup recorded
-that it installed them. The currently running kernel is never removed.
+that it installed them. Before changing `/etc/pacman.conf`, setup saves a
+private backup and removal can restore the complete pre-setup file, including
+any architecture setting it added. Removal asks before deleting the ownership
+record and backup; keeping them allows a later retry. The currently running
+kernel is never removed.
 
 ## For technical users
 
@@ -140,6 +150,17 @@ profile and can be skipped in a VM.
 The setup wizard adds only its own entries to
 `~/.config/omarchy/extensions/omarchy-menu.jsonc`; it does not modify
 Omarchy's packaged menu under `/usr/share/omarchy/`.
+
+## Compatibility and testing
+
+This project is designed to survive normal Omarchy updates by keeping its
+customizations in user-owned paths and avoiding edits to `/usr/share/omarchy/`.
+It still depends on Omarchy commands and APIs, including plugin management,
+the menu extension format, the Quickshell plugin manifest, and the Hyprland
+Lua configuration interface. Check the `next` branch in a VM before testing it
+on a daily-use system, and re-check compatibility after major Omarchy
+updates. Disable or remove an older `master` installation before installing
+`next` on the same machine.
 
 ## License
 

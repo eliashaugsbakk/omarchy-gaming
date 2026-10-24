@@ -8,6 +8,7 @@ set -euo pipefail
 
 STATE_DIR="$HOME/.local/state/omarchy-gaming"
 STATE_FILE="$STATE_DIR/ownership"
+PACMAN_BACKUP="$STATE_DIR/pacman.conf.before"
 MENU_EXTENSION="$HOME/.config/omarchy/extensions/omarchy-menu.jsonc"
 
 for arg in "$@"; do
@@ -70,6 +71,16 @@ path.write_text(text)
 PY
 }
 
+restore_pacman_conf() {
+  [[ -f "$PACMAN_BACKUP" ]] || return 0
+  if prompt_yes_no "Restore /etc/pacman.conf to its pre-setup state?" y; then
+    sudo install -Dm644 "$PACMAN_BACKUP" /etc/pacman.conf
+    success "Restored /etc/pacman.conf."
+  else
+    warn "Keeping the current /etc/pacman.conf."
+  fi
+}
+
 install_menu_entries() {
   mkdir -p "$(dirname "$MENU_EXTENSION")"
   [[ -f "$MENU_EXTENSION" ]] || printf '{\n}\n' > "$MENU_EXTENSION"
@@ -119,20 +130,11 @@ remove_installation() {
   if [[ -f "$STATE_FILE" ]]; then
     # Packages and repositories are removed only when this setup added them.
     # Kernel removal is deliberately confirmed and never attempted while active.
-    repo_added=$(state_value repo_added)
+    pacman_conf_changed=$(state_value pacman_conf_changed)
     gamemode_added=$(state_value gamemode_added)
     kernel_added=$(state_value kernel_added)
-    if [[ "$repo_added" == 1 ]] && prompt_yes_no "Remove the CachyOS repository block added by Omarchy Gaming?" n; then
-      sudo python3 - <<'PY'
-from pathlib import Path
-path = Path("/etc/pacman.conf")
-text = path.read_text()
-start = text.find("# [omarchy-gaming] CachyOS repos")
-end = text.find("[core]", start)
-if start >= 0 and end >= 0:
-    text = text[:start] + text[end:]
-    path.write_text(text)
-PY
+    if [[ "$pacman_conf_changed" == 1 ]]; then
+      restore_pacman_conf
     fi
     if [[ "$gamemode_added" == 1 ]] && prompt_yes_no "Remove GameMode packages installed by this setup?" n; then
       sudo pacman -Rns --noconfirm gamemode lib32-gamemode 2>/dev/null || true
@@ -147,7 +149,11 @@ PY
       fi
     fi
   fi
-  rm -rf "$STATE_DIR"
+  if prompt_yes_no "Delete the Omarchy Gaming change record and backup?" y; then
+    rm -rf "$STATE_DIR"
+  else
+    warn "Keeping $STATE_DIR so this installation can be reversed later."
+  fi
   hyprctl reload &>/dev/null || true
   if command -v omarchy-shell >/dev/null 2>&1; then
     omarchy-shell shell rescanPlugins &>/dev/null || true
@@ -242,6 +248,7 @@ if [[ -f "$STATE_FILE" ]]; then
   gamemode_added=$(state_value gamemode_added)
   kernel_added=$(state_value kernel_added)
   repo_added=$(state_value repo_added)
+  pacman_conf_changed=$(state_value pacman_conf_changed)
   gaming_flag_added=$(state_value gaming_flag_added)
   gaming_lua_added=$(state_value gaming_lua_added)
   plugin_link_added=$(state_value plugin_link_added)
@@ -250,6 +257,7 @@ else
   gamemode_added=0
   kernel_added=0
   repo_added=0
+  pacman_conf_changed=0
   gaming_flag_added=0
   gaming_lua_added=0
   plugin_link_added=0
@@ -258,6 +266,7 @@ else
 gamemode_added=0
 kernel_added=0
 repo_added=0
+pacman_conf_changed=0
 gaming_flag_added=0
 gaming_lua_added=0
 plugin_link_added=0
@@ -267,6 +276,7 @@ fi
 : "${gamemode_added:=0}"
 : "${kernel_added:=0}"
 : "${repo_added:=0}"
+: "${pacman_conf_changed:=0}"
 : "${gaming_flag_added:=0}"
 : "${gaming_lua_added:=0}"
 : "${plugin_link_added:=0}"
@@ -423,7 +433,8 @@ echo "  - Adds CachyOS pacman repository mirrorlist"
 echo "  - Requires sudo and bootloader update / reboot"
 echo ""
 
-if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tier)?"; then
+warn "This changes pacman repositories and may install a bootable kernel. A reboot may be needed."
+if prompt_yes_no "Continue with CachyOS repository and kernel changes?" n; then
   cachyos_url="https://mirror.cachyos.org/repo/x86_64/cachyos"
   info "Installing CachyOS keyring..."
   sudo pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com || true
@@ -469,9 +480,9 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
 
   mirrorlist=$(tier_mirrorlist_file "$tier")
   if [[ "$tier" == generic ]]; then
-    repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos]\nInclude = $mirrorlist\n\n[cachyos-core]\nInclude = $mirrorlist\n\n[cachyos-extra]\nInclude = $mirrorlist\n"
+  repo_block="# BEGIN omarchy-gaming CachyOS repositories (managed)\n# tier: $tier\n[cachyos]\nInclude = $mirrorlist\n\n[cachyos-core]\nInclude = $mirrorlist\n\n[cachyos-extra]\nInclude = $mirrorlist\n# END omarchy-gaming CachyOS repositories (managed)\n"
   else
-    repo_block="# [omarchy-gaming] CachyOS repos for tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n"
+    repo_block="# BEGIN omarchy-gaming CachyOS repositories (managed)\n# tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n# END omarchy-gaming CachyOS repositories (managed)\n"
   fi
 
   pacman_arch=""
@@ -480,20 +491,21 @@ if prompt_yes_no "Configure CachyOS repos and install linux-cachyos kernel ($tie
     znver3|x86-64-v3) pacman_arch="x86_64_v3" ;;
   esac
 
-  if ! grep -q "cachyos" /etc/pacman.conf 2>/dev/null; then
-    if sudo python3 -c '
+  if ! grep -q "BEGIN omarchy-gaming CachyOS repositories" /etc/pacman.conf 2>/dev/null; then
+    cp /etc/pacman.conf "$PACMAN_BACKUP"
+    if printf '%s' "$repo_block" | sudo python3 -c '
 import sys
-block = sys.argv[1]
-with open("/etc/pacman.conf", "r") as f:
-    content = f.read()
-if "[core]" not in content:
+from pathlib import Path
+path = Path("/etc/pacman.conf")
+block = sys.stdin.read().rstrip() + "\n\n"
+text = path.read_text()
+if "[core]" not in text:
     raise SystemExit("[core] repository was not found in /etc/pacman.conf")
-content = content.replace("[core]", block + "\n[core]", 1)
-with open("/etc/pacman.conf", "w") as f:
-    f.write(content)
-' "$(echo -e "$repo_block")"; then
+path.write_text(text.replace("[core]", block + "[core]", 1))
+'; then
       success "Added CachyOS ($tier) to /etc/pacman.conf"
-      sed -i 's/^repo_added=.*/repo_added=1/' "$STATE_FILE"
+      repo_added=1
+      pacman_conf_changed=1
     else
       error "Could not update /etc/pacman.conf; skipping kernel installation."
       exit 1
@@ -521,11 +533,15 @@ path.write_text("\n".join(lines) + "\n")
 PY
     then
       success "Enabled pacman architecture $pacman_arch"
+      pacman_conf_changed=1
     else
       error "Could not enable pacman architecture $pacman_arch."
       exit 1
     fi
   fi
+
+  sed -i 's/^repo_added=.*/repo_added='"$repo_added"'/' "$STATE_FILE"
+  sed -i 's/^pacman_conf_changed=.*/pacman_conf_changed='"$pacman_conf_changed"'/' "$STATE_FILE"
 
   info "Refreshing package databases..."
   sudo pacman -Sy
