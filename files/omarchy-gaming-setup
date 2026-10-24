@@ -484,9 +484,38 @@ if prompt_yes_no "Continue with CachyOS repository and kernel changes?" n; then
 
   mirrorlist=$(tier_mirrorlist_file "$tier")
   if [[ "$tier" == generic ]]; then
-  repo_block="# BEGIN omarchy-gaming CachyOS repositories (managed)\n# tier: $tier\n[cachyos]\nInclude = $mirrorlist\n\n[cachyos-core]\nInclude = $mirrorlist\n\n[cachyos-extra]\nInclude = $mirrorlist\n# END omarchy-gaming CachyOS repositories (managed)\n"
+    repo_block=$(cat <<EOF
+# BEGIN omarchy-gaming CachyOS repositories (managed)
+# tier: $tier
+[cachyos]
+Include = $mirrorlist
+
+[cachyos-core]
+Include = $mirrorlist
+
+[cachyos-extra]
+Include = $mirrorlist
+# END omarchy-gaming CachyOS repositories (managed)
+EOF
+    )
   else
-    repo_block="# BEGIN omarchy-gaming CachyOS repositories (managed)\n# tier: $tier\n[cachyos-$tier]\nInclude = $mirrorlist\n\n[cachyos-core-$tier]\nInclude = $mirrorlist\n\n[cachyos-extra-$tier]\nInclude = $mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n# END omarchy-gaming CachyOS repositories (managed)\n"
+    repo_block=$(cat <<EOF
+# BEGIN omarchy-gaming CachyOS repositories (managed)
+# tier: $tier
+[cachyos-$tier]
+Include = $mirrorlist
+
+[cachyos-core-$tier]
+Include = $mirrorlist
+
+[cachyos-extra-$tier]
+Include = $mirrorlist
+
+[cachyos]
+Include = /etc/pacman.d/cachyos-mirrorlist
+# END omarchy-gaming CachyOS repositories (managed)
+EOF
+    )
   fi
 
   pacman_arch=""
