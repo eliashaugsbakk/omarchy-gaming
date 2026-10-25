@@ -126,7 +126,15 @@ remove_installation() {
     sed -i '/-- \[omarchy-gaming\]/,/-- \[\/omarchy-gaming\]/d' "$HOME/.config/hypr/bindings.lua"
   fi
   omarchy plugin disable com.github.eliashaugsbakk.omarchy-gaming 2>/dev/null || true
-  remove_menu_entries
+  if [[ "${package_removed:-0}" == 1 ]]; then
+    remove_menu_entries
+  else
+    # Keep the package discoverable after removing only the user integration.
+    # Package removal calls this script with --package-removed and removes
+    # both install and remove entries instead.
+    remove_menu_entries
+    install_menu_entries
+  fi
 
   if [[ -f "$STATE_FILE" ]]; then
     # Packages and repositories are removed only when this setup added them.
