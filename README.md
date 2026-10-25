@@ -4,7 +4,7 @@
 
 > [!IMPORTANT]
 > This is an unofficial, user-maintained project. It is not part of Omarchy.
-> The plugin and menu integration are tested against **Omarchy 4.0.3** and
+> The plugin and menu integration are tested against **Omarchy 4.0.6** and
 > require Omarchy 4.x with the current plugin, bar, and menu commands.
 
 # Omarchy Gaming Mode (unofficial)
@@ -16,7 +16,7 @@ install GameMode and optionally configure the CachyOS kernel and repositories.
 
 This project is not made, maintained, or endorsed by the Omarchy project.
 
-The project currently targets Omarchy 4.0.3 APIs, including
+The project currently targets Omarchy 4.0.6 APIs, including
 `omarchy plugin enable`, `omarchy bar`, the Quickshell plugin manifest format,
 and `~/.config/omarchy/extensions/omarchy-menu.jsonc`. Earlier Omarchy
 versions are not supported; newer versions should be checked for API changes
