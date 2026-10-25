@@ -73,7 +73,6 @@ toggle_to_gaming() {
   omarchy toggle idle stay-awake || true
   omarchy-toggle screensaver-off off || true
   omarchy-powerprofiles-set autodetect performance || true
-  omarchy-notification-send -u low -g "󰊴" "Gaming mode enabled" "Optimized for low-latency play" || true
 }
 
 toggle_to_non_gaming() {
@@ -84,7 +83,6 @@ toggle_to_non_gaming() {
   omarchy toggle idle allow-idle || true
   omarchy-toggle screensaver-off on || true
   restore_power_profile
-  omarchy-notification-send -u low -g "󰊴" "Gaming mode disabled" "Returned to normal desktop behavior" || true
 }
 
 if [[ -f $gaming_flag ]]; then
