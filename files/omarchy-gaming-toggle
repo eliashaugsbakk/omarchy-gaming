@@ -58,9 +58,16 @@ restore_power_profile() {
   rm -f "$previous_power_profile"
 }
 
+refresh_bar_state() {
+  # Notify the already-running bar once instead of polling more frequently.
+  # Run asynchronously so shell IPC cannot delay the actual toggle.
+  omarchy-shell -q com.github.eliashaugsbakk.omarchy-gaming check >/dev/null 2>&1 &
+}
+
 toggle_to_gaming() {
   save_power_profile
   omarchy-toggle gaming on
+  refresh_bar_state
   hyprctl reload || true
   omarchy-shell notifications setDnd on || true
   omarchy toggle idle stay-awake || true
@@ -71,6 +78,7 @@ toggle_to_gaming() {
 
 toggle_to_non_gaming() {
   omarchy-toggle gaming off
+  refresh_bar_state
   hyprctl reload || true
   omarchy-shell notifications setDnd off || true
   omarchy toggle idle allow-idle || true

@@ -11,6 +11,9 @@ BarWidget {
   property bool isGaming: false
 
   function toggle() {
+    // Reflect the requested state immediately. The process completion check
+    // below reconciles this if safety checks or the toggle command fail.
+    root.isGaming = !root.isGaming
     toggleProc.running = true
   }
 
