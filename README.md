@@ -90,7 +90,8 @@ When enabled, the toggle:
 - Enables direct scanout and disables animations, blur, shadows, and rounding.
 - Removes workspace gaps and decoration for the gaming workspace.
 - Inhibits idle/sleep, disables the screensaver, and silences notifications.
-- Selects the performance power profile.
+- Selects the performance power profile and restores the previous profile when
+  Gaming Mode is disabled (falling back to power-saver if it cannot be read).
 - Warns if the machine is on battery or, when installed, is not running the CachyOS kernel.
 
 The bar plugin and keyboard shortcut both call the same

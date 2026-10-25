@@ -3,6 +3,8 @@
 set -euo pipefail
 
 gaming_flag="$HOME/.local/state/omarchy/toggles/gaming"
+gaming_state_dir="$HOME/.local/state/omarchy-gaming"
+previous_power_profile="$gaming_state_dir/power-profile-before"
 force=0
 
 if [[ ${1:-} == "--force" ]]; then
@@ -21,7 +23,43 @@ is_cachyos_kernel_installed() {
   command -v pacman >/dev/null 2>&1 && pacman -Q linux-cachyos >/dev/null 2>&1
 }
 
+save_power_profile() {
+  local profile
+
+  profile=$(powerprofilesctl get 2>/dev/null || true)
+  case "$profile" in
+    power-saver|balanced|performance)
+      mkdir -p "$gaming_state_dir"
+      printf '%s\n' "$profile" >"$previous_power_profile"
+      ;;
+    *)
+      rm -f "$previous_power_profile"
+      ;;
+  esac
+}
+
+restore_power_profile() {
+  local profile=""
+
+  if [[ -r "$previous_power_profile" ]]; then
+    profile=$(<"$previous_power_profile")
+  fi
+
+  case "$profile" in
+    power-saver|balanced|performance)
+      omarchy-powerprofiles-set autodetect "$profile" || true
+      ;;
+    *)
+      # Older installs, unavailable power-profiles-daemon, or an invalid
+      # saved value get a conservative desktop default.
+      omarchy-powerprofiles-set autodetect power-saver || true
+      ;;
+  esac
+  rm -f "$previous_power_profile"
+}
+
 toggle_to_gaming() {
+  save_power_profile
   omarchy-toggle gaming on
   hyprctl reload || true
   omarchy-shell notifications setDnd on || true
@@ -37,7 +75,7 @@ toggle_to_non_gaming() {
   omarchy-shell notifications setDnd off || true
   omarchy toggle idle allow-idle || true
   omarchy-toggle screensaver-off on || true
-  omarchy-powerprofiles-set autodetect power-saver || true
+  restore_power_profile
   omarchy-notification-send -u low -g "󰊴" "Gaming mode disabled" "Returned to normal desktop behavior" || true
 }
 
